@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 
 function createWindow() {
     // Create window
@@ -6,7 +6,7 @@ function createWindow() {
         width: 800,
         height: 600,
         webPreferences: {
-            contextIsolation: true
+            nodeIntegration: true
         }
     });
     // load file html page
@@ -18,4 +18,10 @@ function createWindow() {
     return win;
 }
 
+// Create the window
 app.whenReady().then(createWindow);
+
+// listen newTitle recovered adsress of function sendered and send a new avant giveNewTitle
+ipcMain.on('newTitle', (evt, arg) => {
+    evt.sender.send('giveNewTitle', 'Nouveau titre');
+});
