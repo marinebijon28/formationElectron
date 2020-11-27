@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="with=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
        
         <title>Comptabilté garage</title>
@@ -37,34 +37,8 @@
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr class="table-light">
-                                <th scope="row">1</th>
-                                <td>Achat huile moteur</td>
-                                <td>80 €</td>
-                                <td>
-                                    <button class="btn btn-outline-warning mr-2">Modif</button>
-                                    <button class="btn btn-outline-danger mr-2">Supprimer</button>
-                                </td>
-                            </tr>
-                            <tr class="table-light">
-                                <th scope="row">2</th>
-                                <td>Achat joint de vidange</td>
-                                <td>10 €</td>
-                                <td>
-                                    <button class="btn btn-outline-warning mr-2">Modif</button>
-                                    <button class="btn btn-outline-danger mr-2">Supprimer</button>
-                                </td>
-                            </tr>
-                            <tr class="table-light">
-                                <th scope="row">3</th>
-                                <td>Achat filtre huile</td>
-                                <td>20 €</td>
-                                <td>
-                                    <button class="btn btn-outline-warning mr-2">Modif</button>
-                                    <button class="btn btn-outline-danger mr-2">Supprimer</button>
-                                </td>
-                            </tr>
+                        <tbody id="expensesTbody">
+                            
                         </tbody>
                     </table>
                 </div>
@@ -80,16 +54,8 @@
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr class="table-light">
-                                <th scope="row">1</th>
-                                <td>Vidange voiture</td>
-                                <td>150 €</td>
-                                <td>
-                                    <button class="btn btn-outline-warning mr-2">Modif</button>
-                                    <button class="btn btn-outline-danger mr-2">Supprimer</button>
-                                </td>
-                            </tr>
+                        <tbody id="recipesTbody">
+                           
                         </tbody>
                     </table>
                 </div>
@@ -99,7 +65,7 @@
             <div class="row d-flex justify-content-center text-center">
                 <div class="col-4">
                     <h5 class="mt-4 mb-3">Bilan financier<i class="fas da-receipt"></i></h5>
-                    <div class="bg-success text-light">+40 €</div>
+                    <div id="balanceSheet"></div>
                 </div>
             </div>    
 
@@ -110,5 +76,6 @@
             window.jquery = window.$ = require('jquery');
             require('bootstrap');
         </script>
+        <script src="home.js"></script>
     </body>
 </html>
