@@ -21,7 +21,7 @@ function createWindow() {
 // Create the window
 app.whenReady().then(createWindow);
 
-// listen newTitle recovered adsress of function sendered and send a new avant giveNewTitle
+// listen newTitle recovered address of function sendered and send a new avant giveNewTitle
 ipcMain.on('newTitle', (evt, arg) => {
     evt.sender.send('giveNewTitle', 'Nouveau titre');
 });
