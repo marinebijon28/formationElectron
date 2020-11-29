@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 
 
 let expenses = [
@@ -141,3 +141,80 @@ ipcMain.on('delete-item', (evnt, arg) => {
     // Send back a confirmation that the item is correctly deleted
     evnt.sender.send('update-delete-item', arg);
 });
+
+// menu electron modify
+const templateMenu = [
+    {
+        label: 'action',
+        submenu: [
+            {
+                label: "Nouvelle Depense",
+                accelerator: "CommandOrControl+N",
+                click()
+                {
+                    // Create the new item window
+                    const win = createWindow('views/addItem/addItem.html', 500, 450);
+
+                    // Assign target id for after
+                    targetAddItemId = "addExpense";
+
+                    win.on('closed', () => {
+                        targetAddItemId = null;
+                    });
+                }
+            },
+            {
+                label: "Nouvelle Recette",
+                accelerator: "CommandOrControl+M",
+                click()
+                {
+                    // Create the new item window
+                    const win = createWindow('views/addItem/addItem.html', 500, 450);
+
+                    // Assign target id for after
+                    targetAddItemId = "addRecipe";
+
+                    win.on('closed', () => {
+                        targetAddItemId = null;
+                    });
+                }
+            },
+            {
+                label: "Activer/desactiver Mode edition",
+                accelerator: "CommandOrControl+E",
+                click()
+                {
+                    mainWindow.webContents.send('toggle-edition-mode');
+                }
+            }
+        ]
+    },
+    {
+        label: "fenêtre",
+        submenu: 
+        [
+            {role: 'reload'},
+            {role: 'toggledevtools'},
+            // separation of submenu == line white
+            {role: 'separator'},
+            {role: 'togglefullscreen'},
+            {role: 'minimize'},
+            // separation of submenu == line white
+            {role: 'separator'},
+            {role: 'close'}
+        ]
+    }
+];
+
+if (process.platform == 'darwin') {
+    templateMenu.unshift({
+        label: "app.name",
+        submenu: 
+        [
+            {role: 'quit'}
+        ]
+    });
+}
+
+const menu= Menu.buildFromTemplate(templateMenu);
+Menu.setApplicationMenu(menu);

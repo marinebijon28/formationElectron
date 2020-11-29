@@ -1,18 +1,22 @@
 const { ipcRenderer } = require('electron');
-const { dialog } = require('electron').remote;
+const { dialog, Menu, MenuItem, getCurrentWindow } = require('electron').remote;
 
 // Function for update the balance sheet
 function generateBalanceSheet(newBalanceSheet) {
-    balaneceSheetElem = $('#balanceSheet');
-    
+
+    balanceSheetElem = $('#balanceSheet');
+
+   // Remove the classes added before
+   balanceSheetElem.removeClass('bg-success bg-danger');
+  
     // add the bilan of recipes and expenses
-    balaneceSheetElem.text(newBalanceSheet + '€');
+    balanceSheetElem.text(newBalanceSheet + '€');
 
     // If balance sheet is superior to 0 then green background else red background
     if (newBalanceSheet < 0)
-        balaneceSheetElem.addClass("bg-danger");
+        balanceSheetElem.addClass("bg-danger");
     else
-        balaneceSheetElem.addClass("bg-success");
+        balanceSheetElem.addClass("bg-success");
 }
 
 // Function for generate the table row
@@ -26,7 +30,7 @@ function generateTableRow(idTable, tabledata, typeItem) {
         tr.append('<th scope="row">' + rowData.id + '</td>');
         tr.append('<td>' + rowData.label + '</td>');
         tr.append('<td>' + rowData.value + '€</td>');
-        tr.append('<td>\n' +
+        tr.append('<td id="cell' + typeItem + '_' + rowData.id + '" style="display:none">\n' +
             '<button id="modify' + typeItem + '_' + rowData.id + '" class="btn btn-outline-warning mr-2">Modifier</button>\n' +
             '<button id="delete' + typeItem + '_' + rowData.id + '" class="btn btn-outline-danger mr-2">Supprimer</button>\n' +
             '</td>\n' + 
@@ -109,4 +113,87 @@ ipcRenderer.on('update-delete-item', (evnt, arg) => {
 
     // Update balance sheet div
     generateBalanceSheet(arg.balanceSheet);
+});
+
+// Function for toggle edition mode
+function toggleEditionMode() {
+    expenseActionsElem = $('#expenseActions');
+    recipeActionsElem = $('#recipeActions');
+    expenseCellActionsElems = $('[id^=cellExpense_]');
+    recipeCellActionsElems = $('[id^=cellRecipe_]');
+
+    // Just show or hide the column action on the two tables
+    if (!expenseActionsElem.is(':visible') && !recipeActionsElem.is(':visible'))
+    {
+        expenseActionsElem.show();
+        recipeActionsElem.show();
+        expenseCellActionsElems.show();
+        recipeCellActionsElems.show();
+    }
+    else
+    {
+        expenseActionsElem.hide();
+        recipeActionsElem.hide();
+        expenseCellActionsElems.hide();
+        recipeCellActionsElems.hide();
+    }
+}
+
+// Listener for toggle-edition-mode channel
+ipcRenderer.on('toggle-edition-mode', (evnt, arg) => {
+    toggleEditionMode();
+});
+
+// Wait for the dom to be ready
+$(() => {
+
+    // Create the context menu
+    const menu = new Menu();
+
+    menu.append(new MenuItem(
+        {
+            label: "Nouvelle Dépense",
+            click() 
+            {
+                openWindowAddItem(
+                {
+                    target: 
+                    {
+                        id: "addExpense"
+                    }
+                })
+            }
+        }
+    ));
+    menu.append(new MenuItem(
+        {
+            label: "Nouvelle Recette",
+            click() 
+            {
+                openWindowAddItem(
+                {
+                    target: 
+                    {
+                        id: "addRecipe"
+                    }
+                })
+            }
+        }
+    ));
+    menu.append(new MenuItem(
+        {
+            label: "Activer / désactiver du mode édition",
+            click() 
+            {
+                toggleEditionMode();
+            }
+        }
+    ));
+
+    // Add event listener for show the new menu when user make a right click
+    $(document).on('contextmenu', (evnt) => {
+        evnt.preventDefault();
+
+        menu.popup({window: getCurrentWindow()});
+    })
 });
