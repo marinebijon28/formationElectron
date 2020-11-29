@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
+       
+        <title>Ajout d'un nouvel item</title>
+
+         <!-- download core CSS -->
+        <link href="../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../node_modules/@fortawesome/fontawesome-free/css/all.css" rel="stylesheet">
+
+    </head>
+
+    <body>
+        <!-- Page Content -->
+        <div class="container">
+
+            <!-- Header Content -->
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h1 class="mt-5 mb-5">Ajout d'un nouvel item</h1>
+                </div>
+            </div>
+
+             <!-- Arrays Content -->
+            <div class="row">
+
+                <div class="col text-center">
+                   
+                    <form id="addItem">
+
+                        <div class="form-group">
+                            <label for="itemLabel">Intitulé</label>
+                            <input type="text" id="itemLabel" class="form-control" name="label" placeholder="Quel est l'intitulé ?" >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="itemValue">Valeur</label>
+                            <input type="number" id="itemValue" class="form-control" name="value" placeholder="Quelle est la valeur ?" >
+                        </div>
+
+                        <button type="submit" class="btn btn-dark">Ajouter</button>
+
+                    </form>
+
+                </div>
+
+            </div>   
+        </div>
+
+        <!-- Bootstrap core JavaScript -->
+        <script>
+            window.jquery = window.$ = require('jquery');
+            require('bootstrap');
+        </script>
+        <script src="addItem.js"></script>
+    </body>
+</html>
