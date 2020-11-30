@@ -127,6 +127,27 @@ ipcRenderer.on('update-with-new-item', (evnt, arg) => {
 
     // Update balance sheet div
     generateBalanceSheet(arg.balanceSheet);
+
+    expenseActionsElem = $('#expenseActions');
+    recipeActionsElem = $('#recipeActions');
+    expenseCellActionsElems = $('[id^=cellExpense_]');
+    recipeCellActionsElems = $('[id^=cellRecipe_]');
+
+    // The new item style is hide 
+    if (expenseActionsElem.is(':visible') && recipeActionsElem.is(':visible'))
+    {
+        expenseActionsElem.show();
+        recipeActionsElem.show();
+        expenseCellActionsElems.show();
+        recipeCellActionsElems.show();
+    }
+    else
+    {
+        expenseActionsElem.hide();
+        recipeActionsElem.hide();
+        expenseCellActionsElems.hide();
+        recipeCellActionsElems.hide();
+    }
 });
 
 // Listener for update-delete-item channel
