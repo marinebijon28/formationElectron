@@ -3,7 +3,6 @@ const { dialog, Menu, MenuItem, getCurrentWindow } = require('electron').remote;
 
 // Function for update the balance sheet
 function generateBalanceSheet(newBalanceSheet) {
-
     balanceSheetElem = $('#balanceSheet');
 
    // Remove the classes added before
@@ -24,12 +23,14 @@ function generateTableRow(idTable, tabledata, typeItem) {
     // Retrieve the correct table body
     tBodyELem = $(idTable);
     
-    // Create the complete row
+    
     tabledata.forEach(rowData => {
+
+        // Create the complete row
         const tr = ($('<tr id="row' + typeItem + '_' + rowData.id + '" class="table-light">'));
         tr.append('<th scope="row">' + rowData.id + '</td>');
-        tr.append('<td>' + rowData.label + '</td>');
-        tr.append('<td>' + rowData.value + '€</td>');
+        tr.append('<td id="label' + typeItem + '_' + rowData.id + '">' + rowData.label + '</td>');
+        tr.append('<td id="value' + typeItem + '_' + rowData.id + '">' + rowData.value + '€</td>');
         tr.append('<td id="cell' + typeItem + '_' + rowData.id + '" style="display:none">\n' +
             '<button id="modify' + typeItem + '_' + rowData.id + '" class="btn btn-outline-warning mr-2">Modifier</button>\n' +
             '<button id="delete' + typeItem + '_' + rowData.id + '" class="btn btn-outline-danger mr-2">Supprimer</button>\n' +
@@ -62,8 +63,31 @@ function generateTableRow(idTable, tabledata, typeItem) {
                 console.log(err);
             })
         });
+
+        // Create the listener for the modify button
+        const modifyBtn = $('#modify' + typeItem + '_' + rowData.id);
+        modifyBtn.on("click", (evnt) => {
+            evnt.preventDefault();
+
+            // Send all the data for create the view with them
+            ipcRenderer.send("open-update-item-window", {
+                item: rowData,
+                typeItem: typeItem
+            });
+        });
     });
 }
+
+// Listener for updated-item channel
+ipcRenderer.on('updated-item', (evnt, arg) => {
+
+    // Update the row item from the view
+    $('#label' + arg.typeItem + '_' + arg.item.id).text(arg.item.label);
+    $('#value' + arg.typeItem + '_' + arg.item.id).text(arg.item.value + ' €');
+
+    // Update balance sheet div
+    generateBalanceSheet(arg.balanceSheet);
+})
 
 // Listener for store-data
 ipcRenderer.on('store-data', (evt, arg) => {

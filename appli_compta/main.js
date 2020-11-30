@@ -142,6 +142,45 @@ ipcMain.on('delete-item', (evnt, arg) => {
     evnt.sender.send('update-delete-item', arg);
 });
 
+// Listener for the open update item window channel
+ipcMain.on('open-update-item-window', (evnt, arg) => {
+
+    // Create the update item window
+    win = createWindow('views/updateItem/updateItem.html', 500, 450);
+
+    // Only the first time the win is loaded we send data
+    win.webContents.once('did-finish-load', () => {
+        win.send('item-data', arg);
+    });
+});
+
+// Listener for the update item channel
+ipcMain.on('update-item', (evnt, arg) => {
+
+    // Select the correct array with the targetId name
+    let arrayForUpdate = recipes;
+    if (arg.typeItem === 'Expense')
+        arrayForUpdate = expenses;
+
+    // Retrieve and modify the item from the correct array
+    arrayForUpdate[arg.item.id - 1].label = arg.item.label;
+    arrayForUpdate[arg.item.id - 1].value = arg.item.value;
+    // for (let i = 0; i < arrayForUpdate.length; i++) {
+    //     if (arrayForUpdate[i].id === arg.item.id)
+    //     {
+    //         arrayForUpdate[i].label = arg.item.label;
+    //         arrayForUpdate[i].value = arg.item.value;
+    //         break;
+    //     }
+    // }
+
+    // Generate the new balance sheet value
+    arg.balanceSheet = generateBalanceSheet(recipes, expenses);
+
+    // Send a confirmation to the main window that the car is correctly updated
+    mainWindow.webContents.send('updated-item', arg);
+})
+
 // menu electron modify
 const templateMenu = [
     {
