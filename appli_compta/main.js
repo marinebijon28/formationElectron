@@ -1,34 +1,13 @@
 const { app, BrowserWindow, ipcMain, Menu } = require('electron');
-
-
-let expenses = [
-    {
-        id: 1,
-        label: "Achat huile de moteur",
-        value: 80
-    },
-    {
-        id: 2,
-        label: "Achat joint de vidange",
-        value: 10
-    },
-    {
-        id: 3,
-        label: "Achat filtre huile",
-        value: 20
-    }
-];
-
-let recipes = [
-    {
-        id: 1,
-        label: "Vidange voiture",
-        value: 150
-    }
-];
+const Store = require('electron-store');
+const store = new Store();
 
 let mainWindow = null;
 let targetAddItemId = null;
+
+// Load data from local BDD
+let expenses = store.has('expenses') ? store.get('expenses') : [];
+let recipes = store.has('recipes') ? store.get('recipes') : [];
 
 // Function for generate the current balance sheet
 function generateBalanceSheet(recipes, expenses) {
@@ -85,6 +64,7 @@ ipcMain.on('open-new-item-window', (evt, arg) => {
     // Assign target id for after
     targetAddItemId = arg;
 
+    // listener's of event closed window 
     win.on('closed', () => {
         targetAddItemId = null;
     });
@@ -97,8 +77,12 @@ ipcMain.on('add-new-item', (evnt, newItem) => {
 
       // Select the correct array with the targetId name
     let arrayForAdd = recipes;
-    if (targetAddItemId === 'addExpense')
+    
+    let storeKey = "recipes";
+    if (targetAddItemId === 'addExpense'){
         arrayForAdd = expenses;
+        storeKey = "expenses";
+    }
     
     // Check the length of the array
     if (arrayForAdd.length > 0)
@@ -109,6 +93,9 @@ ipcMain.on('add-new-item', (evnt, newItem) => {
 
     // Add the new item to the array
     arrayForAdd.push(newItem);
+
+    // Push the complete new array to the BDD
+    store.set(storeKey, arrayForAdd);
 
     // We have to use the main window ref, not the event sender that is the new window
     mainWindow.webContents.send('update-with-new-item', {
@@ -123,8 +110,13 @@ ipcMain.on('delete-item', (evnt, arg) => {
 
     // Select the correct array with the targetId name
     let arrayForDelete = recipes;
-    if (arg.typeItem === 'Expense')
+
+    let storeKey = "recipes";
+
+    if (arg.typeItem === 'Expense'){
         arrayForDelete = expenses;
+        storeKey = "expenses";
+    }
 
      // Delete the item from the correct array
     arrayForDelete.splice(arg.id - 1, 1);
@@ -134,6 +126,9 @@ ipcMain.on('delete-item', (evnt, arg) => {
     //         break;
     //     }
     // }
+
+     // Push the complete new array to the BDD
+    store.set(storeKey, arrayForDelete);
 
     // Generate the new balance sheet value
     arg.balanceSheet = generateBalanceSheet(recipes, expenses);
@@ -159,8 +154,13 @@ ipcMain.on('update-item', (evnt, arg) => {
 
     // Select the correct array with the targetId name
     let arrayForUpdate = recipes;
-    if (arg.typeItem === 'Expense')
+
+    let storeKey = "recipes";
+
+    if (arg.typeItem === 'Expense') {
         arrayForUpdate = expenses;
+        storeKey = "expenses";
+    }
 
     // Retrieve and modify the item from the correct array
     arrayForUpdate[arg.item.id - 1].label = arg.item.label;
@@ -174,6 +174,9 @@ ipcMain.on('update-item', (evnt, arg) => {
     //     }
     // }
 
+     // Push the complete new array to the BDD
+    store.set(storeKey, arrayForUpdate);
+    
     // Generate the new balance sheet value
     arg.balanceSheet = generateBalanceSheet(recipes, expenses);
 
@@ -241,6 +244,58 @@ const templateMenu = [
             // separation of submenu == line white
             {role: 'separator'},
             {role: 'close'}
+        ]
+    },
+    {
+        label: "Développement",
+        submenu:
+        [
+            {
+                label: "remplir la BDD",
+                click() {
+                    expenses = [
+                        {
+                            id: 1,
+                            label: "Achat huile de moteur",
+                            value: 80
+                        },
+                        {
+                            id: 2,
+                            label: "Achat joint de vidange",
+                            value: 10
+                        },
+                        {
+                            id: 3,
+                            label: "Achat filtre huile",
+                            value: 20
+                        }
+                    ];
+
+                    recipes = [
+                        {
+                            id: 1,
+                            label: "Vidange voiture",
+                            value: 150
+                        }
+                    ];
+
+                    store.set('expenses', expenses);
+                    store.set('recipes', recipes);
+
+                    mainWindow.send('store-data', {
+                        expensesData : expenses,
+                        recipesData : recipes,
+                        balanceSheet: generateBalanceSheet(recipes, expenses)
+                    });
+                }
+            },
+            {
+                label: "vider la BDD",
+                click() {
+                    // Clear the database
+                    store.clear();
+                }
+            }
         ]
     }
 ];
