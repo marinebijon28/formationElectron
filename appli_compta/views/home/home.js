@@ -87,6 +87,11 @@ ipcRenderer.on('updated-item', (evnt, arg) => {
 
     // Update balance sheet div
     generateBalanceSheet(arg.balanceSheet);
+
+     // Show the toast notification
+    $('#toastTitle').text('Mise à jour réussi !');
+    $('#toastContent').text('L\'élement a bien été mis à jour !');
+    $('.toast').toast('show');
 })
 
 // Listener for store-data
@@ -158,6 +163,11 @@ ipcRenderer.on('update-delete-item', (evnt, arg) => {
 
     // Update balance sheet div
     generateBalanceSheet(arg.balanceSheet);
+
+    // Show the toast notification
+    $('#toastTitle').text('Suppression réussi !');
+    $('#toastContent').text('L\'élement a bien été supprimé !');
+    $('.toast').toast('show');
 });
 
 // Function for toggle edition mode

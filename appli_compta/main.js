@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, dialog, Notification, nativeImage } = require('electron');
 const Store = require('electron-store');
 const store = new Store();
+const path = require('path');
 
 let mainWindow = null;
 let targetAddItemId = null;
@@ -8,6 +9,24 @@ let targetAddItemId = null;
 // Load data from local BDD
 let expenses = store.has('expenses') ? store.get('expenses') : [];
 let recipes = store.has('recipes') ? store.get('recipes') : [];
+
+function getLastIdArray(array) {
+    // Check the length of the array
+    if (array.length > 0)
+        return array[array.length - 1].id + 1;
+    return 1;
+}
+
+function showDesktopNotification(title, body, imgpath, textButton) {
+    const notification = new Notification({
+        title: title,
+        body: body,
+        icon: nativeImage.createFromPath(imgpath),
+        closeButtonText: textButton
+    })
+
+    notification.show();
+}
 
 // Function for generate the current balance sheet
 function generateBalanceSheet(recipes, expenses) {
@@ -85,9 +104,8 @@ ipcMain.on('add-new-item', (evnt, newItem) => {
     }
     
     // Check the length of the array
-    if (arrayForAdd.length > 0)
-        newId = arrayForAdd[arrayForAdd.length - 1].id + 1;
-    
+    newId = getLastIdArray(arrayForAdd);
+
     // Assign the id for the item
     newItem.id = newId;
 
@@ -96,6 +114,9 @@ ipcMain.on('add-new-item', (evnt, newItem) => {
 
     // Push the complete new array to the BDD
     store.set(storeKey, arrayForAdd);
+
+    // Show desktop notification
+    showDesktopNotification('Ajout réussi', 'L\'item a été ajouté avec succès !', path.join(__dirname, '/assets/img/cheked.png', 'Fermer'))
 
     // We have to use the main window ref, not the event sender that is the new window
     mainWindow.webContents.send('update-with-new-item', {
@@ -227,6 +248,112 @@ const templateMenu = [
                 click()
                 {
                     mainWindow.webContents.send('toggle-edition-mode');
+                }
+            },
+            {
+                label: "Exporter les données",
+                accelerator: "CommandOrControl+T",
+                click()
+                {
+                    const objectsToCsv = require('objects-to-csv');
+
+                    // save recipes to file
+                    let recipesCSV = new objectsToCsv(recipes);
+                    recipesCSV.toDisk(path.join(app.getPath('downloads'), '/recettes.csv'), {append: true });
+
+                    // save expense to file
+                    let expensesCSV = new objectsToCsv(expenses);
+                    expensesCSV.toDisk(path.join(app.getPath('downloads'), '/depenses.csv'), {append: true });
+                }
+            },
+            {
+                label: "importer les dépenses",
+                accelerator: "CommandOrControl+Z",
+                click()
+                {
+                    dialog.showOpenDialog(mainWindow, {
+                        properties: ['openFile'],
+                        filtres: [
+                            {name: 'Fichier de données', extensions: ['csv']}
+                        ] 
+                    }).then(res => {
+                        if (!res.canceled) {
+
+                             // Check if the user finally cancel
+                            const csv = require('csvtojson');
+
+                            // Retrieve only the first file selected
+                            csv().fromFile(res.filePaths[0])
+                                .then((jsonObj) => {
+
+                                    newId = getLastIdArray(expenses);
+
+                                    jsonObj.forEach((item) => {
+                                        item.id = newId;
+                                        newId++;
+                                    });
+
+                                    // Concat the current value with all the data in the csv
+                                    expenses = expenses.concat(jsonObj);
+
+                                    // Store them into BDD
+                                    store.set('expenses', expenses);
+
+                                    // Send it to the main view
+                                    mainWindow.webContents.send('update-with-new-item', {
+                                        newItem : jsonObj,
+                                        balanceSheet: generateBalanceSheet(recipes, expenses),
+                                        targetId : "addExpense"
+                                    });
+                                });
+                        }
+
+                    }).catch(err => console.log(err))
+                }
+            },
+            {
+                label: "importer les recettes",
+                accelerator: "CommandOrControl+A",
+                click()
+                {
+                    dialog.showOpenDialog(mainWindow, {
+                        properties: ['openFile'],
+                        filtres: [
+                            {name: 'Fichier de données', extensions: ['csv']}
+                        ] 
+                    }).then(res => {
+
+                        // Check if the user finally cancel
+                        if (!res.canceled) {
+                            const csv = require('csvtojson');
+
+                            // Retrieve only the first file selected
+                            csv().fromFile(res.filePaths[0])
+                                .then((jsonObj) => {
+
+                                    newId = getLastIdArray(recipes);
+
+                                    jsonObj.forEach((item) => {
+                                        item.id = newId;
+                                        newId++;
+                                    });
+
+                                    // Concat the current value with all the data in the csv
+                                    recipes = recipes.concat(jsonObj);
+
+                                    // Store them into BDD
+                                    store.set('recipes', recipes);
+
+                                    // Send it to the main view
+                                    mainWindow.webContents.send('update-with-new-item', {
+                                        newItem : jsonObj,
+                                        balanceSheet: generateBalanceSheet(recipes, expenses),
+                                        targetId : "addRecipe"
+                                    });
+                                });
+                        }
+
+                    }).catch(err => console.log(err))
                 }
             }
         ]
