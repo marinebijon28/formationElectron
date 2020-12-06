@@ -17,11 +17,11 @@ function getLastIdArray(array) {
     return 1;
 }
 
-function showDesktopNotification(title, body, imgpath, textButton) {
+function showDesktopNotification(title, body, imgPath, textButton) {
     const notification = new Notification({
         title: title,
         body: body,
-        icon: nativeImage.createFromPath(imgpath),
+        icon: nativeImage.createFromPath(imgPath),
         closeButtonText: textButton
     })
 
@@ -46,8 +46,11 @@ function createWindow(pathFile, widthWindow = 1200, heightWindow = 800) {
         height: heightWindow,
         webPreferences: {
             nodeIntegration : true,
-            enableRemoteModule: true
-        }
+            enableRemoteModule: true,
+            // delete devTools for le packager
+            //devTools: false
+        },
+        icon: path.join(__dirname, '/assets/img/icon.png')
     })
     // load file html page
     win.loadFile(pathFile);
@@ -115,8 +118,9 @@ ipcMain.on('add-new-item', (evnt, newItem) => {
     // Push the complete new array to the BDD
     store.set(storeKey, arrayForAdd);
 
+    console.log(path.join(__dirname, '/assets/img/checked.png'));
     // Show desktop notification
-    showDesktopNotification('Ajout réussi', 'L\'item a été ajouté avec succès !', path.join(__dirname, '/assets/img/cheked.png', 'Fermer'))
+    showDesktopNotification('Ajout réussi', 'L\'item a été ajouté avec succès !', path.join(__dirname, '/assets/img/checked.png'), 'Fermer')
 
     // We have to use the main window ref, not the event sender that is the new window
     mainWindow.webContents.send('update-with-new-item', {
@@ -363,6 +367,7 @@ const templateMenu = [
         submenu: 
         [
             {role: 'reload'},
+            // delete for packager
             {role: 'toggledevtools'},
             // separation of submenu == line white
             {role: 'separator'},
